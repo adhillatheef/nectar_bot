@@ -1,0 +1,131 @@
+{
+  "formId": "ticket_create_v1",
+  "title": "Create Support Ticket",
+  "version": 1,
+  "steps": [
+    {
+      "id": "title",
+      "type": "text",
+      "question": "What is the issue title?",
+      "required": true
+    },
+    {
+      "id": "description",
+      "type": "text",
+      "question": "Please describe the issue",
+      "required": true
+    },
+    {
+      "id": "category",
+      "type": "single_choice",
+      "question": "Select category",
+      "options": [
+        "Electrical",
+        "Plumbing",
+        "IT",
+        "HVAC",
+        "Other"
+      ],
+      "required": true
+    },
+    {
+      "id": "priority",
+      "type": "single_choice",
+      "question": "Select priority",
+      "options": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true
+    },
+    {
+      "id": "location",
+      "type": "text",
+      "question": "Issue location",
+      "required": true
+    },
+    {
+      "id": "assetId",
+      "type": "text",
+      "question": "Asset ID (optional)",
+      "required": false
+    },
+    {
+      "id": "reportedBy",
+      "type": "text",
+      "question": "Reported by",
+      "required": true
+    },
+    {
+      "id": "contactNumber",
+      "type": "text",
+      "question": "Contact number",
+      "required": true,
+      "validation": {
+        "type": "regex",
+        "pattern": "^[0-9]{10}$",
+        "message": "Enter valid 10-digit number"
+      }
+    },
+    {
+      "id": "email",
+      "type": "text",
+      "question": "Email address",
+      "required": true,
+      "validation": {
+        "type": "regex",
+        "pattern": "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$",
+        "message": "Enter valid email"
+      }
+    },
+    {
+      "id": "preferredDate",
+      "type": "date",
+      "question": "Preferred visit date",
+      "required": true
+    },
+    {
+      "id": "preferredTime",
+      "type": "time",
+      "question": "Preferred visit time",
+      "required": true
+    },
+    {
+      "id": "accessRequired",
+      "type": "single_choice",
+      "question": "Is access required?",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true
+    },
+    {
+      "id": "sla",
+      "type": "single_choice",
+      "question": "Select SLA",
+      "options": [
+        "Standard",
+        "Urgent"
+      ],
+      "required": true
+    },
+    {
+      "id": "attachments",
+      "type": "text",
+      "question": "Attachment notes (optional)",
+      "required": false
+    },
+    {
+      "id": "confirmation",
+      "type": "single_choice",
+      "question": "Confirm ticket creation?",
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "required": true
+    }
+  ]
+}
