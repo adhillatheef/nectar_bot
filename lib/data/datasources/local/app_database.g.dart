@@ -61,6 +61,46 @@ class $TicketsTable extends Tickets with TableInfo<$TicketsTable, Ticket> {
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
       'created_at', aliasedName, false,
       type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _assetIdMeta =
+      const VerificationMeta('assetId');
+  @override
+  late final GeneratedColumn<String> assetId = GeneratedColumn<String>(
+      'asset_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _contactNumberMeta =
+      const VerificationMeta('contactNumber');
+  @override
+  late final GeneratedColumn<String> contactNumber = GeneratedColumn<String>(
+      'contact_number', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+      'email', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _preferredDateMeta =
+      const VerificationMeta('preferredDate');
+  @override
+  late final GeneratedColumn<String> preferredDate = GeneratedColumn<String>(
+      'preferred_date', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _preferredTimeMeta =
+      const VerificationMeta('preferredTime');
+  @override
+  late final GeneratedColumn<String> preferredTime = GeneratedColumn<String>(
+      'preferred_time', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _accessRequiredMeta =
+      const VerificationMeta('accessRequired');
+  @override
+  late final GeneratedColumn<String> accessRequired = GeneratedColumn<String>(
+      'access_required', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _slaMeta = const VerificationMeta('sla');
+  @override
+  late final GeneratedColumn<String> sla = GeneratedColumn<String>(
+      'sla', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -71,7 +111,14 @@ class $TicketsTable extends Tickets with TableInfo<$TicketsTable, Ticket> {
         status,
         location,
         reportedBy,
-        createdAt
+        createdAt,
+        assetId,
+        contactNumber,
+        email,
+        preferredDate,
+        preferredTime,
+        accessRequired,
+        sla
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -138,6 +185,42 @@ class $TicketsTable extends Tickets with TableInfo<$TicketsTable, Ticket> {
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('asset_id')) {
+      context.handle(_assetIdMeta,
+          assetId.isAcceptableOrUnknown(data['asset_id']!, _assetIdMeta));
+    }
+    if (data.containsKey('contact_number')) {
+      context.handle(
+          _contactNumberMeta,
+          contactNumber.isAcceptableOrUnknown(
+              data['contact_number']!, _contactNumberMeta));
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+          _emailMeta, email.isAcceptableOrUnknown(data['email']!, _emailMeta));
+    }
+    if (data.containsKey('preferred_date')) {
+      context.handle(
+          _preferredDateMeta,
+          preferredDate.isAcceptableOrUnknown(
+              data['preferred_date']!, _preferredDateMeta));
+    }
+    if (data.containsKey('preferred_time')) {
+      context.handle(
+          _preferredTimeMeta,
+          preferredTime.isAcceptableOrUnknown(
+              data['preferred_time']!, _preferredTimeMeta));
+    }
+    if (data.containsKey('access_required')) {
+      context.handle(
+          _accessRequiredMeta,
+          accessRequired.isAcceptableOrUnknown(
+              data['access_required']!, _accessRequiredMeta));
+    }
+    if (data.containsKey('sla')) {
+      context.handle(
+          _slaMeta, sla.isAcceptableOrUnknown(data['sla']!, _slaMeta));
+    }
     return context;
   }
 
@@ -165,6 +248,20 @@ class $TicketsTable extends Tickets with TableInfo<$TicketsTable, Ticket> {
           .read(DriftSqlType.string, data['${effectivePrefix}reported_by'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      assetId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}asset_id']),
+      contactNumber: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}contact_number']),
+      email: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}email']),
+      preferredDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}preferred_date']),
+      preferredTime: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}preferred_time']),
+      accessRequired: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}access_required']),
+      sla: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sla']),
     );
   }
 
@@ -184,6 +281,13 @@ class Ticket extends DataClass implements Insertable<Ticket> {
   final String location;
   final String reportedBy;
   final DateTime createdAt;
+  final String? assetId;
+  final String? contactNumber;
+  final String? email;
+  final String? preferredDate;
+  final String? preferredTime;
+  final String? accessRequired;
+  final String? sla;
   const Ticket(
       {required this.id,
       required this.title,
@@ -193,7 +297,14 @@ class Ticket extends DataClass implements Insertable<Ticket> {
       required this.status,
       required this.location,
       required this.reportedBy,
-      required this.createdAt});
+      required this.createdAt,
+      this.assetId,
+      this.contactNumber,
+      this.email,
+      this.preferredDate,
+      this.preferredTime,
+      this.accessRequired,
+      this.sla});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -206,6 +317,27 @@ class Ticket extends DataClass implements Insertable<Ticket> {
     map['location'] = Variable<String>(location);
     map['reported_by'] = Variable<String>(reportedBy);
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || assetId != null) {
+      map['asset_id'] = Variable<String>(assetId);
+    }
+    if (!nullToAbsent || contactNumber != null) {
+      map['contact_number'] = Variable<String>(contactNumber);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
+    if (!nullToAbsent || preferredDate != null) {
+      map['preferred_date'] = Variable<String>(preferredDate);
+    }
+    if (!nullToAbsent || preferredTime != null) {
+      map['preferred_time'] = Variable<String>(preferredTime);
+    }
+    if (!nullToAbsent || accessRequired != null) {
+      map['access_required'] = Variable<String>(accessRequired);
+    }
+    if (!nullToAbsent || sla != null) {
+      map['sla'] = Variable<String>(sla);
+    }
     return map;
   }
 
@@ -220,6 +352,24 @@ class Ticket extends DataClass implements Insertable<Ticket> {
       location: Value(location),
       reportedBy: Value(reportedBy),
       createdAt: Value(createdAt),
+      assetId: assetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(assetId),
+      contactNumber: contactNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contactNumber),
+      email:
+          email == null && nullToAbsent ? const Value.absent() : Value(email),
+      preferredDate: preferredDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(preferredDate),
+      preferredTime: preferredTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(preferredTime),
+      accessRequired: accessRequired == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accessRequired),
+      sla: sla == null && nullToAbsent ? const Value.absent() : Value(sla),
     );
   }
 
@@ -236,6 +386,13 @@ class Ticket extends DataClass implements Insertable<Ticket> {
       location: serializer.fromJson<String>(json['location']),
       reportedBy: serializer.fromJson<String>(json['reportedBy']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      assetId: serializer.fromJson<String?>(json['assetId']),
+      contactNumber: serializer.fromJson<String?>(json['contactNumber']),
+      email: serializer.fromJson<String?>(json['email']),
+      preferredDate: serializer.fromJson<String?>(json['preferredDate']),
+      preferredTime: serializer.fromJson<String?>(json['preferredTime']),
+      accessRequired: serializer.fromJson<String?>(json['accessRequired']),
+      sla: serializer.fromJson<String?>(json['sla']),
     );
   }
   @override
@@ -251,6 +408,13 @@ class Ticket extends DataClass implements Insertable<Ticket> {
       'location': serializer.toJson<String>(location),
       'reportedBy': serializer.toJson<String>(reportedBy),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'assetId': serializer.toJson<String?>(assetId),
+      'contactNumber': serializer.toJson<String?>(contactNumber),
+      'email': serializer.toJson<String?>(email),
+      'preferredDate': serializer.toJson<String?>(preferredDate),
+      'preferredTime': serializer.toJson<String?>(preferredTime),
+      'accessRequired': serializer.toJson<String?>(accessRequired),
+      'sla': serializer.toJson<String?>(sla),
     };
   }
 
@@ -263,7 +427,14 @@ class Ticket extends DataClass implements Insertable<Ticket> {
           String? status,
           String? location,
           String? reportedBy,
-          DateTime? createdAt}) =>
+          DateTime? createdAt,
+          Value<String?> assetId = const Value.absent(),
+          Value<String?> contactNumber = const Value.absent(),
+          Value<String?> email = const Value.absent(),
+          Value<String?> preferredDate = const Value.absent(),
+          Value<String?> preferredTime = const Value.absent(),
+          Value<String?> accessRequired = const Value.absent(),
+          Value<String?> sla = const Value.absent()}) =>
       Ticket(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -274,6 +445,17 @@ class Ticket extends DataClass implements Insertable<Ticket> {
         location: location ?? this.location,
         reportedBy: reportedBy ?? this.reportedBy,
         createdAt: createdAt ?? this.createdAt,
+        assetId: assetId.present ? assetId.value : this.assetId,
+        contactNumber:
+            contactNumber.present ? contactNumber.value : this.contactNumber,
+        email: email.present ? email.value : this.email,
+        preferredDate:
+            preferredDate.present ? preferredDate.value : this.preferredDate,
+        preferredTime:
+            preferredTime.present ? preferredTime.value : this.preferredTime,
+        accessRequired:
+            accessRequired.present ? accessRequired.value : this.accessRequired,
+        sla: sla.present ? sla.value : this.sla,
       );
   Ticket copyWithCompanion(TicketsCompanion data) {
     return Ticket(
@@ -288,6 +470,21 @@ class Ticket extends DataClass implements Insertable<Ticket> {
       reportedBy:
           data.reportedBy.present ? data.reportedBy.value : this.reportedBy,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      assetId: data.assetId.present ? data.assetId.value : this.assetId,
+      contactNumber: data.contactNumber.present
+          ? data.contactNumber.value
+          : this.contactNumber,
+      email: data.email.present ? data.email.value : this.email,
+      preferredDate: data.preferredDate.present
+          ? data.preferredDate.value
+          : this.preferredDate,
+      preferredTime: data.preferredTime.present
+          ? data.preferredTime.value
+          : this.preferredTime,
+      accessRequired: data.accessRequired.present
+          ? data.accessRequired.value
+          : this.accessRequired,
+      sla: data.sla.present ? data.sla.value : this.sla,
     );
   }
 
@@ -302,14 +499,36 @@ class Ticket extends DataClass implements Insertable<Ticket> {
           ..write('status: $status, ')
           ..write('location: $location, ')
           ..write('reportedBy: $reportedBy, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('assetId: $assetId, ')
+          ..write('contactNumber: $contactNumber, ')
+          ..write('email: $email, ')
+          ..write('preferredDate: $preferredDate, ')
+          ..write('preferredTime: $preferredTime, ')
+          ..write('accessRequired: $accessRequired, ')
+          ..write('sla: $sla')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, title, description, category, priority,
-      status, location, reportedBy, createdAt);
+  int get hashCode => Object.hash(
+      id,
+      title,
+      description,
+      category,
+      priority,
+      status,
+      location,
+      reportedBy,
+      createdAt,
+      assetId,
+      contactNumber,
+      email,
+      preferredDate,
+      preferredTime,
+      accessRequired,
+      sla);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -322,7 +541,14 @@ class Ticket extends DataClass implements Insertable<Ticket> {
           other.status == this.status &&
           other.location == this.location &&
           other.reportedBy == this.reportedBy &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.assetId == this.assetId &&
+          other.contactNumber == this.contactNumber &&
+          other.email == this.email &&
+          other.preferredDate == this.preferredDate &&
+          other.preferredTime == this.preferredTime &&
+          other.accessRequired == this.accessRequired &&
+          other.sla == this.sla);
 }
 
 class TicketsCompanion extends UpdateCompanion<Ticket> {
@@ -335,6 +561,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
   final Value<String> location;
   final Value<String> reportedBy;
   final Value<DateTime> createdAt;
+  final Value<String?> assetId;
+  final Value<String?> contactNumber;
+  final Value<String?> email;
+  final Value<String?> preferredDate;
+  final Value<String?> preferredTime;
+  final Value<String?> accessRequired;
+  final Value<String?> sla;
   final Value<int> rowid;
   const TicketsCompanion({
     this.id = const Value.absent(),
@@ -346,6 +579,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
     this.location = const Value.absent(),
     this.reportedBy = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.assetId = const Value.absent(),
+    this.contactNumber = const Value.absent(),
+    this.email = const Value.absent(),
+    this.preferredDate = const Value.absent(),
+    this.preferredTime = const Value.absent(),
+    this.accessRequired = const Value.absent(),
+    this.sla = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   TicketsCompanion.insert({
@@ -358,6 +598,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
     required String location,
     required String reportedBy,
     required DateTime createdAt,
+    this.assetId = const Value.absent(),
+    this.contactNumber = const Value.absent(),
+    this.email = const Value.absent(),
+    this.preferredDate = const Value.absent(),
+    this.preferredTime = const Value.absent(),
+    this.accessRequired = const Value.absent(),
+    this.sla = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         title = Value(title),
@@ -377,6 +624,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
     Expression<String>? location,
     Expression<String>? reportedBy,
     Expression<DateTime>? createdAt,
+    Expression<String>? assetId,
+    Expression<String>? contactNumber,
+    Expression<String>? email,
+    Expression<String>? preferredDate,
+    Expression<String>? preferredTime,
+    Expression<String>? accessRequired,
+    Expression<String>? sla,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -389,6 +643,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
       if (location != null) 'location': location,
       if (reportedBy != null) 'reported_by': reportedBy,
       if (createdAt != null) 'created_at': createdAt,
+      if (assetId != null) 'asset_id': assetId,
+      if (contactNumber != null) 'contact_number': contactNumber,
+      if (email != null) 'email': email,
+      if (preferredDate != null) 'preferred_date': preferredDate,
+      if (preferredTime != null) 'preferred_time': preferredTime,
+      if (accessRequired != null) 'access_required': accessRequired,
+      if (sla != null) 'sla': sla,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -403,6 +664,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
       Value<String>? location,
       Value<String>? reportedBy,
       Value<DateTime>? createdAt,
+      Value<String?>? assetId,
+      Value<String?>? contactNumber,
+      Value<String?>? email,
+      Value<String?>? preferredDate,
+      Value<String?>? preferredTime,
+      Value<String?>? accessRequired,
+      Value<String?>? sla,
       Value<int>? rowid}) {
     return TicketsCompanion(
       id: id ?? this.id,
@@ -414,6 +682,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
       location: location ?? this.location,
       reportedBy: reportedBy ?? this.reportedBy,
       createdAt: createdAt ?? this.createdAt,
+      assetId: assetId ?? this.assetId,
+      contactNumber: contactNumber ?? this.contactNumber,
+      email: email ?? this.email,
+      preferredDate: preferredDate ?? this.preferredDate,
+      preferredTime: preferredTime ?? this.preferredTime,
+      accessRequired: accessRequired ?? this.accessRequired,
+      sla: sla ?? this.sla,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -448,6 +723,27 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (assetId.present) {
+      map['asset_id'] = Variable<String>(assetId.value);
+    }
+    if (contactNumber.present) {
+      map['contact_number'] = Variable<String>(contactNumber.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (preferredDate.present) {
+      map['preferred_date'] = Variable<String>(preferredDate.value);
+    }
+    if (preferredTime.present) {
+      map['preferred_time'] = Variable<String>(preferredTime.value);
+    }
+    if (accessRequired.present) {
+      map['access_required'] = Variable<String>(accessRequired.value);
+    }
+    if (sla.present) {
+      map['sla'] = Variable<String>(sla.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -466,6 +762,13 @@ class TicketsCompanion extends UpdateCompanion<Ticket> {
           ..write('location: $location, ')
           ..write('reportedBy: $reportedBy, ')
           ..write('createdAt: $createdAt, ')
+          ..write('assetId: $assetId, ')
+          ..write('contactNumber: $contactNumber, ')
+          ..write('email: $email, ')
+          ..write('preferredDate: $preferredDate, ')
+          ..write('preferredTime: $preferredTime, ')
+          ..write('accessRequired: $accessRequired, ')
+          ..write('sla: $sla, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -1311,6 +1614,13 @@ typedef $$TicketsTableCreateCompanionBuilder = TicketsCompanion Function({
   required String location,
   required String reportedBy,
   required DateTime createdAt,
+  Value<String?> assetId,
+  Value<String?> contactNumber,
+  Value<String?> email,
+  Value<String?> preferredDate,
+  Value<String?> preferredTime,
+  Value<String?> accessRequired,
+  Value<String?> sla,
   Value<int> rowid,
 });
 typedef $$TicketsTableUpdateCompanionBuilder = TicketsCompanion Function({
@@ -1323,6 +1633,13 @@ typedef $$TicketsTableUpdateCompanionBuilder = TicketsCompanion Function({
   Value<String> location,
   Value<String> reportedBy,
   Value<DateTime> createdAt,
+  Value<String?> assetId,
+  Value<String?> contactNumber,
+  Value<String?> email,
+  Value<String?> preferredDate,
+  Value<String?> preferredTime,
+  Value<String?> accessRequired,
+  Value<String?> sla,
   Value<int> rowid,
 });
 
@@ -1384,6 +1701,28 @@ class $$TicketsTableFilterComposer
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get assetId => $composableBuilder(
+      column: $table.assetId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get contactNumber => $composableBuilder(
+      column: $table.contactNumber, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get email => $composableBuilder(
+      column: $table.email, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get preferredDate => $composableBuilder(
+      column: $table.preferredDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get preferredTime => $composableBuilder(
+      column: $table.preferredTime, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get accessRequired => $composableBuilder(
+      column: $table.accessRequired,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sla => $composableBuilder(
+      column: $table.sla, builder: (column) => ColumnFilters(column));
+
   Expression<bool> ticketAttachmentsRefs(
       Expression<bool> Function($$TicketAttachmentsTableFilterComposer f) f) {
     final $$TicketAttachmentsTableFilterComposer composer = $composerBuilder(
@@ -1441,6 +1780,31 @@ class $$TicketsTableOrderingComposer
 
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get assetId => $composableBuilder(
+      column: $table.assetId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get contactNumber => $composableBuilder(
+      column: $table.contactNumber,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get email => $composableBuilder(
+      column: $table.email, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get preferredDate => $composableBuilder(
+      column: $table.preferredDate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get preferredTime => $composableBuilder(
+      column: $table.preferredTime,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get accessRequired => $composableBuilder(
+      column: $table.accessRequired,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get sla => $composableBuilder(
+      column: $table.sla, builder: (column) => ColumnOrderings(column));
 }
 
 class $$TicketsTableAnnotationComposer
@@ -1478,6 +1842,27 @@ class $$TicketsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get assetId =>
+      $composableBuilder(column: $table.assetId, builder: (column) => column);
+
+  GeneratedColumn<String> get contactNumber => $composableBuilder(
+      column: $table.contactNumber, builder: (column) => column);
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get preferredDate => $composableBuilder(
+      column: $table.preferredDate, builder: (column) => column);
+
+  GeneratedColumn<String> get preferredTime => $composableBuilder(
+      column: $table.preferredTime, builder: (column) => column);
+
+  GeneratedColumn<String> get accessRequired => $composableBuilder(
+      column: $table.accessRequired, builder: (column) => column);
+
+  GeneratedColumn<String> get sla =>
+      $composableBuilder(column: $table.sla, builder: (column) => column);
 
   Expression<T> ticketAttachmentsRefs<T extends Object>(
       Expression<T> Function($$TicketAttachmentsTableAnnotationComposer a) f) {
@@ -1534,6 +1919,13 @@ class $$TicketsTableTableManager extends RootTableManager<
             Value<String> location = const Value.absent(),
             Value<String> reportedBy = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
+            Value<String?> assetId = const Value.absent(),
+            Value<String?> contactNumber = const Value.absent(),
+            Value<String?> email = const Value.absent(),
+            Value<String?> preferredDate = const Value.absent(),
+            Value<String?> preferredTime = const Value.absent(),
+            Value<String?> accessRequired = const Value.absent(),
+            Value<String?> sla = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TicketsCompanion(
@@ -1546,6 +1938,13 @@ class $$TicketsTableTableManager extends RootTableManager<
             location: location,
             reportedBy: reportedBy,
             createdAt: createdAt,
+            assetId: assetId,
+            contactNumber: contactNumber,
+            email: email,
+            preferredDate: preferredDate,
+            preferredTime: preferredTime,
+            accessRequired: accessRequired,
+            sla: sla,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -1558,6 +1957,13 @@ class $$TicketsTableTableManager extends RootTableManager<
             required String location,
             required String reportedBy,
             required DateTime createdAt,
+            Value<String?> assetId = const Value.absent(),
+            Value<String?> contactNumber = const Value.absent(),
+            Value<String?> email = const Value.absent(),
+            Value<String?> preferredDate = const Value.absent(),
+            Value<String?> preferredTime = const Value.absent(),
+            Value<String?> accessRequired = const Value.absent(),
+            Value<String?> sla = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               TicketsCompanion.insert(
@@ -1570,6 +1976,13 @@ class $$TicketsTableTableManager extends RootTableManager<
             location: location,
             reportedBy: reportedBy,
             createdAt: createdAt,
+            assetId: assetId,
+            contactNumber: contactNumber,
+            email: email,
+            preferredDate: preferredDate,
+            preferredTime: preferredTime,
+            accessRequired: accessRequired,
+            sla: sla,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

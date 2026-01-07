@@ -14,10 +14,7 @@ class TicketListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Tickets"),
-        automaticallyImplyLeading: false, // Don't show back button on main list
-      ),
+      appBar: AppBar(title: const Text("My Tickets"), automaticallyImplyLeading: false),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: controller.createNewTicket,
         label: const Text("New Ticket"),
@@ -25,22 +22,8 @@ class TicketListScreen extends StatelessWidget {
         backgroundColor: AppColors.primaryPurple,
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (controller.tickets.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.confirmation_number_outlined, size: 64, color: Colors.grey),
-                const SizedBox(height: 16),
-                Text("No tickets found", style: Theme.of(context).textTheme.bodyLarge),
-              ],
-            ),
-          );
-        }
+        if (controller.isLoading.value) return const Center(child: CircularProgressIndicator());
+        if (controller.tickets.isEmpty) return const Center(child: Text("No tickets found"));
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -61,13 +44,10 @@ class TicketListScreen extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () async {
-          final result = await Get.toNamed(
-              Routes.TICKET_DETAIL,
-              arguments: ticket
-          );
-          if (result == true) {
-            controller.loadTickets();
-          }
+          // Navigate to detail
+          await Get.toNamed(Routes.TICKET_DETAIL, arguments: ticket);
+          // Always reload to reflect status changes or deletions
+          controller.loadTickets();
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -77,31 +57,18 @@ class TicketListScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      ticket.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  Expanded(child: Text(ticket.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
                   _buildStatusChip(ticket.status),
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  _buildInfoChip(Icons.category, ticket.category),
-                  const SizedBox(width: 12),
-                  _buildInfoChip(Icons.priority_high, ticket.priority,
-                      color: ticket.priority == 'High' ? Colors.red : Colors.orange),
-                ],
-              ),
+              Row(children: [
+                _buildInfoChip(Icons.category, ticket.category),
+                const SizedBox(width: 12),
+                _buildInfoChip(Icons.priority_high, ticket.priority, color: ticket.priority == 'High' ? Colors.red : Colors.orange),
+              ]),
               const SizedBox(height: 12),
-              Text(
-                "Created: ${DateFormat('MMM dd, yyyy').format(ticket.createdAt)}",
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
+              Text("Created: ${DateFormat('MMM dd, yyyy').format(ticket.createdAt)}", style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ],
           ),
         ),
@@ -113,27 +80,18 @@ class TicketListScreen extends StatelessWidget {
     Color color = Colors.green;
     if (status == 'Open') color = Colors.blue;
     if (status == 'Closed') color = Colors.grey;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(status, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
     );
   }
 
   Widget _buildInfoChip(IconData icon, String label, {Color? color}) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color ?? Colors.grey),
-        const SizedBox(width: 4),
-        Text(label, style: TextStyle(color: color ?? Colors.grey[700], fontSize: 13)),
-      ],
-    );
+    return Row(children: [
+      Icon(icon, size: 16, color: color ?? Colors.grey),
+      const SizedBox(width: 4),
+      Text(label, style: TextStyle(color: color ?? Colors.grey[700], fontSize: 13)),
+    ]);
   }
 }

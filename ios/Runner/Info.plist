@@ -45,5 +45,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSMicrophoneUsageDescription</key>
+    <string>We need access to the microphone to record audio notes for tickets.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>We need camera access to capture photos and videos for ticket attachments.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>We need microphone access to record audio notes and video sound.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>We need gallery access to select photos and videos.</string>
 </dict>
 </plist>

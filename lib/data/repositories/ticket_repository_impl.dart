@@ -9,10 +9,8 @@ class TicketRepositoryImpl implements ITicketRepository {
 
   @override
   Future<List<Ticket>> getTickets() async {
-    // 1. Get raw data from Drift
     final dbTickets = await _db.getAllTickets();
 
-    // 2. Convert (Map) to Domain Entity
     return dbTickets.map((t) => Ticket(
       id: t.id,
       title: t.title,
@@ -22,6 +20,14 @@ class TicketRepositoryImpl implements ITicketRepository {
       status: t.status,
       location: t.location,
       createdAt: t.createdAt,
+      assetId: t.assetId,
+      contactNumber: t.contactNumber,
+      email: t.email,
+      preferredDate: t.preferredDate,
+      preferredTime: t.preferredTime,
+      accessRequired: t.accessRequired,
+      sla: t.sla,
+      reportedBy: t.reportedBy,
     )).toList();
   }
 
