@@ -15,6 +15,7 @@ class Ticket {
   final String? preferredTime;
   final String? accessRequired;
   final String? sla;
+  final List<String> attachments;
 
   Ticket({
     required this.id,
@@ -33,5 +34,6 @@ class Ticket {
     this.preferredTime,
     this.accessRequired,
     this.sla,
+    this.attachments = const [],
   });
 }

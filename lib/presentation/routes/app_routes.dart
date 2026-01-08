@@ -3,4 +3,5 @@ abstract class Routes {
   static const CHAT = '/chat';
   static const TICKET_LIST = '/ticket_list';
   static const TICKET_DETAIL = '/ticket_detail';
+  static const EDIT_TICKET = '/edit_ticket'; // Add this
 }

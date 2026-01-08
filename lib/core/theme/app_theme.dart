@@ -1,76 +1,70 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
-import 'app_fonts.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
-      // 1. Core Colors
-      primaryColor: AppColors.primaryPurple,
-      scaffoldBackgroundColor: Colors.white,
+      useMaterial3: true,
+      primaryColor: AppColors.nectarPurple,
+      scaffoldBackgroundColor: AppColors.background,
+      fontFamily: 'Poppins', // Ensure you have google_fonts or the font asset added
 
-      // 2. Color Scheme (Material 3 standard)
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryPurple,
-        primary: AppColors.primaryPurple,
-        secondary: AppColors.secondaryPurple,
-        surface: Colors.white,
-      ),
-
-      // 3. Text Theme (Applies Montserrat globally)
-      fontFamily: AppFonts.montserrat,
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        displayMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        bodyLarge: TextStyle(fontSize: 16, color: AppColors.textPrimary),
-        bodyMedium: TextStyle(fontSize: 14, color: AppColors.textPrimary),
-      ),
-
-      // 4. AppBar Theme
+      // --- AppBar Theme ---
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         titleTextStyle: TextStyle(
-          fontFamily: AppFonts.montserrat,
+          fontFamily: 'Poppins',
           color: AppColors.textPrimary,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
         ),
       ),
 
-      // 5. Input Decoration Theme (For TextFields)
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryPurple, width: 2),
-        ),
+      // --- Card Theme ---
+      cardTheme: CardThemeData(
+        color: AppColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        margin: EdgeInsets.zero,
       ),
 
-      // 6. Button Theme
+      // --- Button Theme ---
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryPurple,
+          backgroundColor: AppColors.nectarPurple, // Fallback if no gradient
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          elevation: 4,
+          shadowColor: AppColors.nectarPurple.withOpacity(0.4),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
           textStyle: const TextStyle(
-            fontFamily: AppFonts.montserrat,
-            fontWeight: FontWeight.bold,
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
+        ),
+      ),
+
+      // --- Input Decoration ---
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: AppColors.nectarPurple, width: 1.5),
         ),
       ),
     );
