@@ -1,90 +1,95 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:video_player/video_player.dart';
-import 'package:chewie/chewie.dart';
-import 'package:audioplayers/audioplayers.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class ChatBubble extends StatelessWidget {
-  final String text;
+  final String? text;
   final bool isBot;
   final String? attachmentPath;
-  final String? attachmentType;
+  final String? attachmentType; // 'image', 'video', 'audio'
 
   const ChatBubble({
-    Key? key,
-    required this.text,
+    super.key,
+    this.text,
     required this.isBot,
     this.attachmentPath,
     this.attachmentType,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    bool isImage = attachmentPath != null && (attachmentType == 'image' || _checkExt(attachmentPath!, ['jpg', 'png', 'jpeg']));
-    bool isVideo = attachmentPath != null && (attachmentType == 'video' || _checkExt(attachmentPath!, ['mp4', 'mov']));
-    bool isAudio = attachmentPath != null && (attachmentType == 'audio' || _checkExt(attachmentPath!, ['m4a', 'mp3']));
-
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment: isBot ? MainAxisAlignment.start : MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      padding: const EdgeInsets.only(bottom: 24.0),
+      child: Column(
+        crossAxisAlignment: isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
         children: [
-          // BOT AVATAR
-          if (isBot) ...[
-            const CircleAvatar(
-              radius: 16,
-              backgroundColor: Colors.white,
-              backgroundImage: AssetImage('assets/images/nectar_logo.png'),
-              child: null,
-            ),
-            const SizedBox(width: 8),
-          ],
-
-          // BUBBLE CONTENT
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                // Gradient for User, White for Bot
-                gradient: isBot ? null : AppColors.primaryGradient,
-                color: isBot ? Colors.white : null,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: isBot ? const Radius.circular(4) : const Radius.circular(20),
-                  bottomRight: isBot ? const Radius.circular(20) : const Radius.circular(4),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  )
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isImage) _ImageThumbnail(path: attachmentPath!),
-                  if (isVideo) _VideoThumbnail(path: attachmentPath!),
-                  if (isAudio) _AudioPlayerWidget(path: attachmentPath!, isBot: isBot),
-
-                  if (text.isNotEmpty)
-                    Text(
-                      text,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: isBot ? AppColors.textPrimary : Colors.white,
-                        fontSize: 15,
-                        height: 1.4,
-                      ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isBot) ...[
+                  // Bot Identity
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.nexusTeal, width: 1),
+                        shape: BoxShape.circle
                     ),
+                    child: const Icon(Icons.view_in_ar, size: 10, color: AppColors.nexusTeal),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "NEXUS AI",
+                    style: TextStyle(
+                        color: AppColors.nexusTeal,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                        letterSpacing: 1.0
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                 ],
-              ),
+                Text(
+                  DateTime.now().toString(),
+                  style: TextStyle(
+                    color: AppColors.textSecondary.withOpacity(0.5),
+                    fontSize: 10,
+                  ),
+                ),
+                if (!isBot) ...[
+                  const SizedBox(width: 8),
+                  const Text("YOU", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10, letterSpacing: 1.0)),
+                ]
+              ],
+            ),
+          ),
+
+          // Main Message Module
+          Container(
+            constraints: BoxConstraints(maxWidth: Get.width * 0.8),
+            decoration: isBot
+                ? _buildBotDecoration()
+                : _buildUserDecoration(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (attachmentPath != null) _buildAttachmentPreview(),
+                if (text != null && text!.isNotEmpty) ...[
+                  if (attachmentPath != null) const SizedBox(height: 12),
+                  Text(
+                    text!,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      color: isBot ? AppColors.textPrimary : Colors.white,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ],
@@ -92,148 +97,78 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  bool _checkExt(String path, List<String> exts) {
-    final ext = path.toLowerCase().split('.').last;
-    return exts.contains(ext);
-  }
-}
+  // --- STYLING LOGIC ---
 
-// --- THUMBNAILS ---
-
-class _ImageThumbnail extends StatelessWidget {
-  final String path;
-  const _ImageThumbnail({required this.path});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Get.to(() => _FullScreenViewer(child: Image.file(File(path)))),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        constraints: const BoxConstraints(maxHeight: 200),
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
-        clipBehavior: Clip.antiAlias,
-        child: Image.file(File(path), fit: BoxFit.cover),
+  BoxDecoration _buildBotDecoration() {
+    return BoxDecoration(
+      color: AppColors.nexusPanel.withOpacity(0.6), // Glass-like
+      borderRadius: const BorderRadius.only(
+        topRight: Radius.circular(12),
+        bottomRight: Radius.circular(12),
+        bottomLeft: Radius.circular(12),
+      ),
+      // The "System" Border on the left
+      border: const Border(
+        left: BorderSide(color: AppColors.nexusTeal, width: 3),
       ),
     );
   }
-}
 
-class _VideoThumbnail extends StatelessWidget {
-  final String path;
-  const _VideoThumbnail({required this.path});
+  BoxDecoration _buildUserDecoration() {
+    return const BoxDecoration(
+      color: Color(0xFF2C3032), // Solid dark grey
+      borderRadius: BorderRadius.only(
+        topLeft: Radius.circular(12),
+        bottomLeft: Radius.circular(12),
+        bottomRight: Radius.circular(12),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Get.to(() => _FullScreenVideoPlayer(path: path)),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        height: 150,
-        width: double.infinity,
+  Widget _buildAttachmentPreview() {
+    final bool isImage = attachmentType == 'image';
+    final bool isVideo = attachmentType == 'video';
+    final bool isAudio = attachmentType == 'audio';
+
+    if (isAudio) {
+      return Container(
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.black26,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.white10),
         ),
-        child: const Center(
-          child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48),
+        child: const Row(
+          children: [
+            Icon(Icons.mic, color: AppColors.nexusTeal),
+            SizedBox(width: 12),
+            Text("Audio Note.m4a", style: TextStyle(color: Colors.white70, fontSize: 12)),
+          ],
         ),
-      ),
-    );
-  }
-}
+      );
+    }
 
-class _AudioPlayerWidget extends StatefulWidget {
-  final String path;
-  final bool isBot;
-  const _AudioPlayerWidget({required this.path, required this.isBot});
-  @override
-  State<_AudioPlayerWidget> createState() => _AudioPlayerWidgetState();
-}
-
-class _AudioPlayerWidgetState extends State<_AudioPlayerWidget> {
-  final AudioPlayer _player = AudioPlayer();
-  bool isPlaying = false;
-
-  @override
-  void dispose() {
-    _player.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color = widget.isBot ? AppColors.nectarPurple : Colors.white;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
-          color: color,
-          onPressed: () async {
-            if (isPlaying) {
-              await _player.pause();
-            } else {
-              await _player.play(DeviceFileSource(widget.path));
-            }
-            setState(() => isPlaying = !isPlaying);
-          },
-        ),
-        Text("Audio Note", style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-}
-
-// Reuse your FullScreenVideoPlayer logic here...
-class _FullScreenViewer extends StatelessWidget {
-  final Widget child;
-  const _FullScreenViewer({required this.child});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(backgroundColor: Colors.transparent, iconTheme: const IconThemeData(color: Colors.white)),
-      body: Center(child: InteractiveViewer(child: child)),
-    );
-  }
-}
-
-// Place _FullScreenVideoPlayer class here (same as before)
-class _FullScreenVideoPlayer extends StatefulWidget {
-  final String path;
-  const _FullScreenVideoPlayer({required this.path});
-  @override
-  State<_FullScreenVideoPlayer> createState() => _FullScreenVideoPlayerState();
-}
-
-class _FullScreenVideoPlayerState extends State<_FullScreenVideoPlayer> {
-  late VideoPlayerController _vc;
-  ChewieController? _cc;
-
-  @override
-  void initState() {
-    super.initState();
-    _vc = VideoPlayerController.file(File(widget.path))..initialize().then((_) {
-      setState(() {
-        _cc = ChewieController(videoPlayerController: _vc, autoPlay: true, looping: false);
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _vc.dispose();
-    _cc?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: _cc != null ? Chewie(controller: _cc!) : const CircularProgressIndicator(),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Image.file(
+              File(attachmentPath!),
+              height: 150,
+              width: double.infinity,
+              fit: BoxFit.cover
+          ),
+          if (isVideo)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle
+              ),
+              child: const Icon(Icons.play_arrow, color: Colors.white, size: 32),
+            )
+        ],
       ),
     );
   }

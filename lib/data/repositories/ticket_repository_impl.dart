@@ -10,34 +10,49 @@ class TicketRepositoryImpl implements ITicketRepository {
 
   @override
   Future<List<Ticket>> getTickets() async {
+    // 1. Get all tickets
     final dbTickets = await _db.getAllTickets();
+    final List<Ticket> result = [];
 
-    return dbTickets.map((t) => Ticket(
-      id: t.id,
-      title: t.title,
-      description: t.description,
-      category: t.category,
-      priority: t.priority,
-      status: t.status,
-      location: t.location,
-      createdAt: t.createdAt,
-      assetId: t.assetId,
-      contactNumber: t.contactNumber,
-      email: t.email,
-      preferredDate: t.preferredDate,
-      preferredTime: t.preferredTime,
-      accessRequired: t.accessRequired,
-      sla: t.sla,
-      reportedBy: t.reportedBy,
-      attachments: [],
-    )).toList();
+    // 2. Loop through each ticket and fetch its attachments
+    for (final t in dbTickets) {
+
+      // Fetch attachments for THIS specific ticket ID
+      final attachmentRows = await (_db.select(_db.ticketAttachments)
+        ..where((a) => a.ticketId.equals(t.id))).get();
+
+      final attachmentPaths = attachmentRows.map((a) => a.filePath).toList();
+
+      result.add(Ticket(
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        category: t.category,
+        priority: t.priority,
+        status: t.status,
+        location: t.location,
+        createdAt: t.createdAt,
+        assetId: t.assetId,
+        contactNumber: t.contactNumber,
+        email: t.email,
+        preferredDate: t.preferredDate,
+        preferredTime: t.preferredTime,
+        accessRequired: t.accessRequired,
+        sla: t.sla,
+        reportedBy: t.reportedBy,
+
+        // --- FIX: Pass the fetched paths instead of [] ---
+        attachments: attachmentPaths,
+      ));
+    }
+
+    return result;
   }
 
   @override
   Future<void> createTicket(Ticket ticket) async {
     await _db.transaction(() async {
-
-      // 1. Insert the Main Ticket
+      // 1. Insert Main Ticket
       await _db.insertTicket(TicketsCompanion(
         id: Value(ticket.id),
         title: Value(ticket.title),
@@ -55,9 +70,11 @@ class TicketRepositoryImpl implements ITicketRepository {
         preferredTime: Value(ticket.preferredTime),
         accessRequired: Value(ticket.accessRequired),
         sla: Value(ticket.sla),
+        // Note: We do NOT insert into the 'attachments' column of the Tickets table.
+        // We use the secondary table below.
       ));
 
-      // 2. Insert Attachments (Iterate through the list provided by the Entity)
+      // 2. Insert Attachments into the secondary table
       for (final path in ticket.attachments) {
         String type = 'image';
         if (path.toLowerCase().endsWith('.mp4') || path.toLowerCase().endsWith('.mov')) {
@@ -75,10 +92,10 @@ class TicketRepositoryImpl implements ITicketRepository {
     });
   }
 
+
   @override
   Future<void> updateTicket(Ticket ticket) async {
     await _db.transaction(() async {
-      // 1. Update Core Fields
       await (_db.update(_db.tickets)..where((t) => t.id.equals(ticket.id))).write(
         TicketsCompanion(
           title: Value(ticket.title),
@@ -96,18 +113,13 @@ class TicketRepositoryImpl implements ITicketRepository {
         ),
       );
 
-      // 2. Replace Attachments
-      // First, delete existing attachments for this ticket
+      // Replace Attachments
       await (_db.delete(_db.ticketAttachments)..where((a) => a.ticketId.equals(ticket.id))).go();
 
-      // Second, insert the new list
       for (final path in ticket.attachments) {
         String type = 'image';
-        if (path.toLowerCase().endsWith('.mp4') || path.toLowerCase().endsWith('.mov')) {
-          type = 'video';
-        } else if (path.toLowerCase().endsWith('.m4a') || path.toLowerCase().endsWith('.mp3')) {
-          type = 'audio';
-        }
+        if (path.toLowerCase().endsWith('.mp4')) type = 'video';
+        else if (path.toLowerCase().endsWith('.m4a')) type = 'audio';
 
         await _db.insertAttachment(TicketAttachmentsCompanion.insert(
           ticketId: ticket.id,
@@ -130,15 +142,12 @@ class TicketRepositoryImpl implements ITicketRepository {
 
   @override
   Future<Ticket?> getTicketById(String id) async {
-    // 1. Fetch Ticket
     final ticketRow = await (_db.select(_db.tickets)..where((t) => t.id.equals(id))).getSingleOrNull();
     if (ticketRow == null) return null;
 
-    // 2. Fetch Attachments
     final attachmentRows = await (_db.select(_db.ticketAttachments)..where((a) => a.ticketId.equals(id))).get();
     final attachmentPaths = attachmentRows.map((a) => a.filePath).toList();
 
-    // 3. Combine
     return Ticket(
       id: ticketRow.id,
       title: ticketRow.title,

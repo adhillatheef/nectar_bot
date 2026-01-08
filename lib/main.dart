@@ -19,7 +19,8 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       title: 'Nectar Support',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
+      theme: AppTheme.darkTheme,
+      themeMode: ThemeMode.dark,
       initialRoute: Routes.SPLASH,
       getPages: AppPages.routes,
     );

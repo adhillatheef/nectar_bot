@@ -1,253 +1,293 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/form_field_model.dart';
 import '../controller/chat_controller.dart';
 
-class ChatInputArea extends StatelessWidget {
-  final ChatController controller = Get.find();
-
-  ChatInputArea({Key? key}) : super(key: key);
+class ChatInputArea extends GetView<ChatController> {
+  const ChatInputArea({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          )
-        ],
+      color: AppColors.nexusDark,
+      // 1. ADDED SafeArea to prevent overlap with the bottom home bar
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+          child: Obx(() {
+            final question = controller.currentQuestion.value;
+            final isLoading = controller.isLoading.value;
+            final isTyping = controller.isTyping.value;
+
+            if (isLoading || question == null) {
+              return const SizedBox(height: 50);
+            }
+
+            return IgnorePointer(
+              ignoring: isTyping,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: isTyping ? 0.5 : 1.0,
+                child: _buildInputContent(context, question),
+              ),
+            );
+          }),
+        ),
       ),
-      child: Obx(() {
-        final question = controller.currentQuestion.value;
-        final isTyping = controller.isTyping.value;
-        final isDisabled = controller.isInputDisabled.value;
-
-        // If completely loading (start of chat), show loader
-        if (controller.isLoading.value) {
-          return const SizedBox(height: 50, child: Center(child: CircularProgressIndicator()));
-        }
-
-        // Keep widget tree stable to prevent focus loss, just disable interactions
-        return IgnorePointer(
-          ignoring: isDisabled || isTyping,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: (isDisabled || isTyping) ? 0.5 : 1.0,
-            child: _buildInputContent(context, question),
-          ),
-        );
-      }),
     );
   }
 
-  Widget _buildInputContent(BuildContext context, FormFieldModel? question) {
-    if (question == null) return const SizedBox(height: 50);
-
+  Widget _buildInputContent(BuildContext context, FormFieldModel question) {
     switch (question.type) {
       case 'single_choice':
-        return _buildModernSelectionGrid(question);
+        return _buildHoloOptionsGrid(question); // New Design
       case 'date':
-        return _buildTextInput(context, isDate: true);
+        return _buildSimpleInput(context, question, isDate: true);
       case 'time':
-        return _buildTextInput(context, isTime: true);
+        return _buildSimpleInput(context, question, isTime: true);
       case 'text':
       default:
-        return _buildTextInput(context);
+        return _buildSimpleInput(context, question);
     }
   }
 
-  Widget _buildTextInput(BuildContext context, {bool isDate = false, bool isTime = false}) {
-    final textController = TextEditingController();
-    final bool allowAttachments = controller.currentQuestion.value?.id == 'attachments';
-    final bool isRequired = controller.currentQuestion.value?.required ?? false;
-
-    return Obx(() {
-      if (controller.isRecording.value) {
-        return _buildRecordingUI();
-      }
-
-      return Row(
-        children: [
-          if (allowAttachments) ...[
-            _buildAttachmentButton(Icons.image, controller.pickFromGallery),
-            _buildAttachmentButton(Icons.camera_alt, () => _showCameraOptions(context)),
-          ],
-
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: TextField(
-                controller: textController,
-                readOnly: isDate || isTime,
-                textAlignVertical: TextAlignVertical.center,
-                decoration: InputDecoration(
-                  hintText: isDate
-                      ? "Select Date"
-                      : (isTime ? "Select Time" : (isRequired ? "Type answer..." : "Type answer (Optional)")),
-                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  suffixIcon: (isDate || isTime)
-                      ? Icon(isDate ? Icons.calendar_today : Icons.access_time, color: AppColors.nectarPurple, size: 20)
-                      : null,
+  // --- 1. NEW HOLOGRAPHIC OPTIONS UI ---
+  Widget _buildHoloOptionsGrid(FormFieldModel question) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // A. Tiny Tech Label
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0, left: 4),
+          child: Row(
+            children: [
+              const Icon(Icons.terminal, size: 12, color: AppColors.nexusTeal),
+              const SizedBox(width: 6),
+              Text(
+                "SELECT INPUT PROTOCOL >",
+                style: TextStyle(
+                    fontFamily: 'CourierPrime', // Using your new font
+                    fontSize: 10,
+                    color: AppColors.nexusTeal.withOpacity(0.7),
+                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.bold
                 ),
-                onTap: () async {
-                  if (isDate) {
-                    DateTime? picked = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2030),
-                        builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: AppColors.nectarPurple)), child: child!)
-                    );
-                    if (picked != null) {
-                      textController.text = picked.toString().split(' ')[0];
-                      controller.handleUserResponse(textController.text);
-                    }
-                  } else if (isTime) {
-                    TimeOfDay? picked = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.now(),
-                        builder: (context, child) => Theme(data: Theme.of(context).copyWith(colorScheme: const ColorScheme.light(primary: AppColors.nectarPurple)), child: child!)
-                    );
-                    if (picked != null) {
-                      textController.text = picked.format(context);
-                      controller.handleUserResponse(textController.text);
-                    }
-                  }
-                },
-                onSubmitted: (val) {
-                  if (val.trim().isNotEmpty) {
-                    controller.handleUserResponse(val.trim());
-                    textController.clear();
-                  }
-                },
               ),
-            ),
+            ],
           ),
+        ),
 
-          if (allowAttachments)
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: _buildAttachmentButton(Icons.mic, controller.toggleRecording),
-            ),
-
-          const SizedBox(width: 8),
-
-          // Send Button
-          GestureDetector(
-            onTap: () {
-              // Logic: Proceed if text present OR (optional AND no text) OR (attachments present)
-              // Simple logic: pass text to controller, controller decides validity
-              controller.handleUserResponse(textController.text);
-              textController.clear();
+        // B. The Options List
+        SizedBox(
+          height: 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: question.options?.length ?? 0,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final option = question.options![index];
+              return _buildHoloCard(option);
             },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-            ),
-          )
-        ],
-      );
-    });
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _buildRecordingUI() {
+  Widget _buildHoloCard(String text) {
+    return GestureDetector(
+      onTap: () => controller.handleUserResponse(text),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+            color: AppColors.nexusPanel,
+            // Slightly rounded corners, but kept sharp for tech look
+            borderRadius: const BorderRadius.all(Radius.circular(8)),
+            border: Border.all(
+                color: AppColors.nexusTeal.withOpacity(0.3),
+                width: 1
+            ),
+            boxShadow: [
+              // Subtle Glow
+              BoxShadow(
+                  color: AppColors.nexusTeal.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2)
+              )
+            ]
+        ),
+        child: Text(
+          text.toUpperCase(),
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontFamily: 'CourierPrime', // The new font
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- 2. STANDARD TEXT INPUT (Cleaned up from previous step) ---
+  Widget _buildSimpleInput(BuildContext context, FormFieldModel question, {bool isDate = false, bool isTime = false}) {
+    final bool allowAttachments = question.id == 'attachments';
+    final bool isOptional = !question.required;
+
+    String hintText = "Type command...";
+    if (isDate) hintText = "Select Date";
+    else if (isTime) hintText = "Select Time";
+    else if (isOptional) hintText = "Type message (Optional)...";
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
+        color: AppColors.nexusPanel,
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.red.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.mic, color: Colors.red, size: 24),
-          const SizedBox(width: 8),
-          const Expanded(
-              child: Text("Recording...", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
+          if (allowAttachments)
+            IconButton(
+              icon: const Icon(Icons.attach_file, color: AppColors.textSecondary, size: 20),
+              onPressed: () => _showAttachmentOptions(context),
+            )
+          else
+            const SizedBox(width: 12),
+
+          Expanded(
+            child: TextField(
+              controller: controller.textController,
+              readOnly: isDate || isTime,
+              style: const TextStyle(color: Colors.white, fontFamily: 'Poppins', fontSize: 14),
+              decoration: InputDecoration(
+                hintText: hintText,
+                hintStyle: TextStyle(color: AppColors.textSecondary.withOpacity(0.5), fontSize: 13),
+                filled: false,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
+              ),
+              onTap: () {
+                if (isDate) _pickDate(context);
+                if (isTime) _pickTime(context);
+              },
+              onSubmitted: (val) => _submitText(),
+            ),
           ),
-          GestureDetector(
-            onTap: controller.toggleRecording,
-            child: const Icon(Icons.stop_circle_outlined, color: Colors.red, size: 32),
-          ),
+
+          Obx(() {
+            IconData icon = Icons.arrow_upward;
+            Color iconColor = AppColors.nexusTeal;
+
+            if (controller.isRecording.value) {
+              icon = Icons.stop;
+              iconColor = AppColors.nexusRed;
+            }
+
+            return IconButton(
+              icon: Icon(icon, color: iconColor, size: 20),
+              onPressed: () {
+                if (controller.isRecording.value) {
+                  controller.toggleRecording();
+                } else {
+                  _submitText();
+                }
+              },
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildAttachmentButton(IconData icon, VoidCallback onTap) {
-    return IconButton(
-      icon: Icon(icon, color: Colors.grey[600], size: 24),
-      onPressed: onTap,
-      padding: const EdgeInsets.all(8),
-      constraints: const BoxConstraints(),
-      splashRadius: 20,
-    );
+  // --- HELPERS ---
+  void _submitText() {
+    final text = controller.textController.text.trim();
+    controller.handleUserResponse(text);
+    controller.textController.clear();
   }
 
-  void _showCameraOptions(BuildContext context) {
+  Future<void> _pickDate(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) => Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.nexusTeal,
+              onPrimary: Colors.black,
+              surface: AppColors.nexusPanel,
+            ),
+          ),
+          child: child!
+      ),
+    );
+    if (picked != null) {
+      controller.textController.text = DateFormat('yyyy-MM-dd').format(picked);
+      _submitText();
+    }
+  }
+
+  Future<void> _pickTime(BuildContext context) async {
+    TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) => Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppColors.nexusTeal,
+              onPrimary: Colors.black,
+              surface: AppColors.nexusPanel,
+            ),
+          ),
+          child: child!
+      ),
+    );
+    if (picked != null) {
+      // ignore: use_build_context_synchronously
+      controller.textController.text = picked.format(context);
+      _submitText();
+    }
+  }
+
+  void _showAttachmentOptions(BuildContext context) {
     Get.bottomSheet(
       Container(
+        padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.nexusPanel,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.all(20),
         child: Wrap(
           children: [
-            ListTile(
-                leading: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.blue.shade50, shape: BoxShape.circle), child: const Icon(Icons.camera_alt, color: Colors.blue)),
-                title: const Text('Take Photo', style: TextStyle(fontWeight: FontWeight.w600)),
-                onTap: () { Get.back(); controller.pickFromCamera(false); }
-            ),
-            ListTile(
-                leading: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.orange.shade50, shape: BoxShape.circle), child: const Icon(Icons.videocam, color: Colors.orange)),
-                title: const Text('Record Video', style: TextStyle(fontWeight: FontWeight.w600)),
-                onTap: () { Get.back(); controller.pickFromCamera(true); }
-            ),
+            _buildOption(Icons.image, "Gallery", () => controller.pickMedia(isCamera: false)),
+            _buildOption(Icons.camera_alt, "Camera", () => controller.pickMedia(isCamera: true)),
+            _buildOption(Icons.videocam, "Video", () => controller.pickVideo()),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildModernSelectionGrid(FormFieldModel question) {
-    return SizedBox(
-      height: 60, // Fixed height for horizontal scroll or grid
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: question.options!.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, index) {
-          final option = question.options![index];
-          return ActionChip(
-            label: Text(option),
-            labelStyle: const TextStyle(color: AppColors.nectarPurple, fontWeight: FontWeight.w600),
-            backgroundColor: Colors.white,
-            side: const BorderSide(color: AppColors.nectarPurple),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            onPressed: () => controller.handleUserResponse(option),
-            elevation: 1,
-            pressElevation: 4,
-          );
-        },
-      ),
+  Widget _buildOption(IconData icon, String label, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.nexusTeal),
+      title: Text(label, style: const TextStyle(color: Colors.white, fontFamily: 'Poppins')),
+      onTap: () {
+        Get.back();
+        onTap();
+      },
     );
   }
 }

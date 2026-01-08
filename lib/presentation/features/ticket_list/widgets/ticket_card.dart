@@ -17,93 +17,113 @@ class TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Staggered Animation Logic
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 400 + (index * 100)),
-      curve: Curves.easeOut,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 50 * (1 - value)), // Slide up effect
-          child: Opacity(
-            opacity: value,
-            child: child,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.nexusPanel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ID and Status Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "#${ticket.id.substring(0, 8).toUpperCase()}",
-                        style: TextStyle(
-                          color: Colors.grey[400],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      _buildStatusPill(ticket.status),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  // Title
-                  Text(
-                    ticket.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                // 1. Neon Status Strip (Left Border)
+                Container(
+                  width: 4,
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(ticket.status),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1, color: AppColors.background),
-                  const SizedBox(height: 12),
-                  // Footer Info
-                  Row(
-                    children: [
-                      _buildInfoIcon(Icons.category_outlined, ticket.category),
-                      const SizedBox(width: 16),
-                      _buildInfoIcon(
-                          Icons.flag_outlined,
-                          ticket.priority,
-                          color: ticket.priority == 'High' ? AppColors.nectarRed : AppColors.nectarOrange
-                      ),
-                      const Spacer(),
-                      Text(
-                        DateFormat('MMM dd').format(ticket.createdAt),
-                        style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                      ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getStatusColor(ticket.status).withOpacity(0.6),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
                     ],
                   ),
-                ],
-              ),
+                ),
+
+                // 2. Content
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header: ID + Date
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "#${ticket.id.substring(0, 6).toUpperCase()}",
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textSecondary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            Text(
+                              DateFormat('MMM dd • HH:mm').format(ticket.createdAt),
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textSecondary.withOpacity(0.5),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Title
+                        Text(
+                          ticket.title,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            color: AppColors.textPrimary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // Footer Badges
+                        Row(
+                          children: [
+                            _buildTechBadge(ticket.category, Colors.blueGrey),
+                            const SizedBox(width: 8),
+                            _buildTechBadge(
+                                ticket.priority,
+                                ticket.priority == 'High' ? AppColors.nexusRed : AppColors.textSecondary,
+                                isOutline: true
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -111,50 +131,35 @@ class TicketCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusPill(String status) {
-    Color color = AppColors.success;
-    Color bg = AppColors.success.withOpacity(0.1);
-
-    if (status == 'Open') {
-      color = AppColors.nectarBlue;
-      bg = AppColors.nectarBlue.withOpacity(0.1);
-    } else if (status == 'Closed') {
-      color = AppColors.textSecondary;
-      bg = Colors.grey[200]!;
-    }
-
+  Widget _buildTechBadge(String text, Color color, {bool isOutline = false}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(30),
+        color: isOutline ? Colors.transparent : color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+            color: isOutline ? color.withOpacity(0.5) : Colors.transparent,
+            width: 1
+        ),
       ),
       child: Text(
-        status,
+        text.toUpperCase(),
         style: TextStyle(
-          color: color,
+          color: isOutline ? color : Colors.white.withOpacity(0.9),
           fontSize: 10,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
           letterSpacing: 0.5,
         ),
       ),
     );
   }
 
-  Widget _buildInfoIcon(IconData icon, String text, {Color? color}) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: color ?? Colors.grey[500]),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-              color: color ?? Colors.grey[600],
-              fontSize: 12,
-              fontWeight: FontWeight.w500
-          ),
-        ),
-      ],
-    );
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'Open': return AppColors.nexusTeal;
+      case 'In Progress': return Colors.amber;
+      case 'Closed': return AppColors.textSecondary;
+      default: return AppColors.nexusTeal;
+    }
   }
 }

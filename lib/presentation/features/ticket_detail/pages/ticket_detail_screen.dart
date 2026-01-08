@@ -1,113 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../controller/ticket_detail_controller.dart';
-import '../widgets/ticket_action_buttons.dart';
-import '../widgets/ticket_attachment_gallery.dart';
 import '../widgets/ticket_detail_header.dart';
 import '../widgets/ticket_info_grid.dart';
+import '../widgets/ticket_attachment_gallery.dart';
+import '../widgets/ticket_action_buttons.dart';
 
 class TicketDetailScreen extends GetView<TicketDetailController> {
-  const TicketDetailScreen({Key? key}) : super(key: key);
+  const TicketDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.nexusDark,
+      appBar: AppBar(
+        title: const Text("OPERATIONAL DOSSIER", style: TextStyle(fontSize: 14, letterSpacing: 2.0)),
+        centerTitle: true,
+        backgroundColor: AppColors.nexusPanel,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+          onPressed: () => Get.back(),
+        ),
+      ),
       body: Obx(() {
         final t = controller.ticket.value;
 
         if (t == null) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.nectarPurple));
+          return const Center(child: CircularProgressIndicator(color: AppColors.nexusTeal));
         }
 
-        return CustomScrollView(
-          slivers: [
-            // 1. Header
-            TicketDetailHeader(
-              ticket: t,
-              onEdit: controller.navigateToEdit,
-              onDelete: controller.deleteTicket,
-            ),
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Header Module
+              TicketDetailHeader(
+                ticket: t,
+                onEdit: controller.navigateToEdit,
+                onDelete: controller.deleteTicket,
+              ),
 
-            // 2. Content Body
-            SliverToBoxAdapter(
-              child: Transform.translate(
-                offset: const Offset(0, -20), // Slight overlap with header
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title & Meta
-                        Text(
-                          t.title,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
-                            const SizedBox(width: 6),
-                            Text(
-                              DateFormat('MMMM dd, yyyy • hh:mm a').format(t.createdAt),
-                              style: const TextStyle(color: Colors.grey, fontSize: 13),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Description Section
-                        _buildSectionLabel("Description"),
-                        Text(
-                          t.description,
-                          style: const TextStyle(fontSize: 15, height: 1.6, color: AppColors.textSecondary),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Info Grid
-                        _buildSectionLabel("Details"),
-                        TicketInfoGrid(ticket: t),
-
-                        const SizedBox(height: 24),
-
-                        // Attachments
-                        _buildSectionLabel("Attachments"),
-                        TicketAttachmentGallery(attachments: t.attachments),
-
-                        const SizedBox(height: 40),
-
-                        // Action Buttons
-                        const Text("Update Status", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                        const SizedBox(height: 12),
-                        TicketActionButtons(
-                          currentStatus: t.status,
-                          onStatusUpdate: controller.updateStatus,
-                        ),
-
-                        const SizedBox(height: 40),
-                      ],
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 2. Incident Log (Description)
+                    _buildSectionLabel("INCIDENT LOG"),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppColors.nexusPanel.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withOpacity(0.05)),
+                      ),
+                      child: Text(
+                        t.description,
+                        style: const TextStyle(fontSize: 14, height: 1.6, color: Colors.white70, fontFamily: 'Poppins'),
+                      ),
                     ),
-                  ),
+
+                    const SizedBox(height: 32),
+
+                    // 3. Grid Details
+                    _buildSectionLabel("SYSTEM METRICS"),
+                    TicketInfoGrid(ticket: t),
+
+                    const SizedBox(height: 32),
+
+                    // 4. Evidence Files
+                    _buildSectionLabel("EVIDENCE FILES (${t.attachments.length})"),
+                    TicketAttachmentGallery(attachments: t.attachments),
+
+                    const SizedBox(height: 40),
+
+                    // 5. Status Actions
+                    _buildSectionLabel("UPDATE PROTOCOL"),
+                    TicketActionButtons(
+                      currentStatus: t.status,
+                      onStatusUpdate: controller.updateStatus,
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       }),
     );
@@ -115,15 +97,21 @@ class TicketDetailScreen extends GetView<TicketDetailController> {
 
   Widget _buildSectionLabel(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey,
-          letterSpacing: 1.2,
-        ),
+      padding: const EdgeInsets.only(bottom: 16, left: 4),
+      child: Row(
+        children: [
+          Container(width: 4, height: 14, color: AppColors.nexusTeal),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
+              letterSpacing: 1.5,
+            ),
+          ),
+        ],
       ),
     );
   }

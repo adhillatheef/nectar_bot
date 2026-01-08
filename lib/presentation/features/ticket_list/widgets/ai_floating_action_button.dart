@@ -10,13 +10,14 @@ class AIFloatingActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        gradient: AppColors.nexusGradient,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: AppColors.nectarPurple.withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: AppColors.nexusTeal.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -26,18 +27,20 @@ class AIFloatingActionButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(30),
           onTap: onPressed,
           child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.auto_awesome, color: Colors.white, size: 20),
+                Icon(Icons.add, color: Colors.black, size: 20),
                 SizedBox(width: 8),
                 Text(
-                  "New Ticket",
+                  "NEW TICKET",
                   style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                    color: Colors.black,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    letterSpacing: 1.0,
                   ),
                 ),
               ],

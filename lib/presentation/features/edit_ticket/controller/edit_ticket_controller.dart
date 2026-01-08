@@ -4,13 +4,15 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+
+import '../../../../core/utils/custom_snackbar.dart';
 import '../../../../domain/entities/ticket.dart';
 import '../../../../domain/usecases/update_ticket_usecase.dart';
 
 class EditTicketController extends GetxController {
   final UpdateTicketUseCase _updateTicketUseCase = Get.find();
 
-  // Text Controllers
+  // Controllers
   final titleController = TextEditingController();
   final descController = TextEditingController();
   final locationController = TextEditingController();
@@ -45,13 +47,11 @@ class EditTicketController extends GetxController {
     attachments.assignAll(t.attachments);
   }
 
-  // --- Attachment Logic (Add/Remove) ---
-
   void pickAttachment() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+
     if (image != null) {
-      // Save locally
       final directory = await getApplicationDocumentsDirectory();
       final String fileName = "${DateTime.now().millisecondsSinceEpoch}_${p.basename(image.path)}";
       final String localPath = p.join(directory.path, fileName);
@@ -65,17 +65,14 @@ class EditTicketController extends GetxController {
     attachments.removeAt(index);
   }
 
-  // --- Save Logic ---
-
   void saveChanges() async {
     if (titleController.text.isEmpty || descController.text.isEmpty) {
-      Get.snackbar("Error", "Title and Description are required");
+      CustomSnackbar.show(title: "Error", message: "Title and Description are required", isError: true);
       return;
     }
 
     isLoading.value = true;
 
-    // Create updated entity
     final updatedTicket = Ticket(
       id: _ticketId,
       title: titleController.text,
@@ -84,7 +81,6 @@ class EditTicketController extends GetxController {
       priority: priority.value,
       location: locationController.text,
       contactNumber: contactController.text,
-      // Keep original values for uneditable fields
       status: _originalTicket.status,
       createdAt: _originalTicket.createdAt,
       reportedBy: _originalTicket.reportedBy,
@@ -99,9 +95,9 @@ class EditTicketController extends GetxController {
 
     try {
       await _updateTicketUseCase(updatedTicket);
-      Get.back(result: true); // Return 'true' to trigger refresh
+      Get.back(result: true);
     } catch (e) {
-      Get.snackbar("Error", "Failed to update ticket");
+      CustomSnackbar.show(title: "System Error", message: "Update protocol failed", isError: true);
     } finally {
       isLoading.value = false;
     }

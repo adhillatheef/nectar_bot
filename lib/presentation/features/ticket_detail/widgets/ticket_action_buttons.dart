@@ -1,51 +1,51 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class TicketActionButtons extends StatelessWidget {
   final String currentStatus;
   final Function(String) onStatusUpdate;
 
   const TicketActionButtons({
-    Key? key,
+    super.key,
     required this.currentStatus,
     required this.onStatusUpdate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _buildButton("Open", Colors.blue, currentStatus == "Open"),
+        _buildProtocolButton("OPEN", AppColors.nexusTeal, currentStatus == "Open"),
         const SizedBox(width: 12),
-        _buildButton("In Progress", Colors.orange, currentStatus == "In Progress"),
+        _buildProtocolButton("IN PROGRESS", Colors.amber, currentStatus == "In Progress"),
         const SizedBox(width: 12),
-        _buildButton("Closed", Colors.grey, currentStatus == "Closed"),
+        _buildProtocolButton("CLOSED", AppColors.textSecondary, currentStatus == "Closed"),
       ],
     );
   }
 
-  Widget _buildButton(String status, Color color, bool isActive) {
+  Widget _buildProtocolButton(String status, Color color, bool isActive) {
     return Expanded(
       child: InkWell(
-        onTap: () => onStatusUpdate(status),
-        borderRadius: BorderRadius.circular(12),
+        onTap: () => onStatusUpdate(status.split(" ").map((str) => str.capitalizeFirst).join(" ")), // Capitalize for logic match
+        borderRadius: BorderRadius.circular(30),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
-            color: isActive ? color : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isActive ? color : Colors.grey.shade300),
-            boxShadow: isActive
-                ? [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 4))]
-                : [],
+            color: isActive ? color.withOpacity(0.2) : Colors.transparent,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: isActive ? color : Colors.white.withOpacity(0.1), width: 1),
+            boxShadow: isActive ? [BoxShadow(color: color.withOpacity(0.1), blurRadius: 10)] : [],
           ),
           child: Center(
             child: Text(
               status,
               style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey[700],
+                color: isActive ? color : Colors.grey,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: 10,
+                letterSpacing: 1.0,
               ),
             ),
           ),
@@ -53,4 +53,8 @@ class TicketActionButtons extends StatelessWidget {
       ),
     );
   }
+}
+
+extension StringExtension on String {
+  String get capitalizeFirst => this[0].toUpperCase() + substring(1).toLowerCase();
 }
