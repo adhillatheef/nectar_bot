@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:nectar_bot/presentation/routes/app_routes.dart';
 import 'presentation/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
-import 'dependency_injection.dart'; // Import the new file
+import 'dependency_injection.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

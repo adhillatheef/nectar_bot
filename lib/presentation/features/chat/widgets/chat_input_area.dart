@@ -12,7 +12,6 @@ class ChatInputArea extends GetView<ChatController> {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.nexusDark,
-      // 1. ADDED SafeArea to prevent overlap with the bottom home bar
       child: SafeArea(
         top: false,
         child: Padding(
@@ -21,11 +20,19 @@ class ChatInputArea extends GetView<ChatController> {
             final question = controller.currentQuestion.value;
             final isLoading = controller.isLoading.value;
             final isTyping = controller.isTyping.value;
+            final isRecording = controller.isRecording.value;
 
+            // 1. Loading State
             if (isLoading || question == null) {
               return const SizedBox(height: 50);
             }
 
+            // 2. Recording State (Red Capsule)
+            if (isRecording) {
+              return _buildRecordingCapsule();
+            }
+
+            // 3. Normal Input State
             return IgnorePointer(
               ignoring: isTyping,
               child: AnimatedOpacity(
@@ -40,10 +47,66 @@ class ChatInputArea extends GetView<ChatController> {
     );
   }
 
+  // --- WIDGET: RECORDING CAPSULE (Red/Active State) ---
+  Widget _buildRecordingCapsule() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.nexusPanel,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppColors.nexusRed.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.nexusRed.withOpacity(0.1),
+            blurRadius: 15,
+            spreadRadius: 1,
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          // Blinking Mic Icon
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.2, end: 1.0),
+              duration: const Duration(seconds: 1),
+              curve: Curves.easeInOut,
+              builder: (context, value, child) {
+                return Icon(Icons.mic, color: AppColors.nexusRed.withOpacity(value));
+              },
+              child: const Icon(Icons.mic, color: AppColors.nexusRed),
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          const Expanded(
+            child: Text(
+              "Recording Audio...",
+              style: TextStyle(
+                  color: AppColors.nexusRed,
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5
+              ),
+            ),
+          ),
+
+          // Stop Button
+          IconButton(
+            icon: const Icon(Icons.stop_circle_outlined, color: AppColors.nexusRed, size: 28),
+            onPressed: controller.toggleRecording,
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInputContent(BuildContext context, FormFieldModel question) {
     switch (question.type) {
       case 'single_choice':
-        return _buildHoloOptionsGrid(question); // New Design
+        return _buildHoloOptionsGrid(question);
       case 'date':
         return _buildSimpleInput(context, question, isDate: true);
       case 'time':
@@ -54,13 +117,12 @@ class ChatInputArea extends GetView<ChatController> {
     }
   }
 
-  // --- 1. NEW HOLOGRAPHIC OPTIONS UI ---
+  // --- WIDGET: HOLOGRAPHIC OPTIONS (Preserved) ---
   Widget _buildHoloOptionsGrid(FormFieldModel question) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // A. Tiny Tech Label
         Padding(
           padding: const EdgeInsets.only(bottom: 12.0, left: 4),
           child: Row(
@@ -70,7 +132,7 @@ class ChatInputArea extends GetView<ChatController> {
               Text(
                 "SELECT INPUT PROTOCOL >",
                 style: TextStyle(
-                    fontFamily: 'CourierPrime', // Using your new font
+                    fontFamily: 'CourierPrime',
                     fontSize: 10,
                     color: AppColors.nexusTeal.withOpacity(0.7),
                     letterSpacing: 1.0,
@@ -81,7 +143,6 @@ class ChatInputArea extends GetView<ChatController> {
           ),
         ),
 
-        // B. The Options List
         SizedBox(
           height: 44,
           child: ListView.separated(
@@ -106,14 +167,12 @@ class ChatInputArea extends GetView<ChatController> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
             color: AppColors.nexusPanel,
-            // Slightly rounded corners, but kept sharp for tech look
             borderRadius: const BorderRadius.all(Radius.circular(8)),
             border: Border.all(
                 color: AppColors.nexusTeal.withOpacity(0.3),
                 width: 1
             ),
             boxShadow: [
-              // Subtle Glow
               BoxShadow(
                   color: AppColors.nexusTeal.withOpacity(0.1),
                   blurRadius: 8,
@@ -125,7 +184,7 @@ class ChatInputArea extends GetView<ChatController> {
           text.toUpperCase(),
           style: const TextStyle(
             color: AppColors.textPrimary,
-            fontFamily: 'CourierPrime', // The new font
+            fontFamily: 'CourierPrime',
             fontWeight: FontWeight.bold,
             fontSize: 13,
             letterSpacing: 0.5,
@@ -135,7 +194,7 @@ class ChatInputArea extends GetView<ChatController> {
     );
   }
 
-  // --- 2. STANDARD TEXT INPUT (Cleaned up from previous step) ---
+  // --- WIDGET: STANDARD TEXT INPUT ---
   Widget _buildSimpleInput(BuildContext context, FormFieldModel question, {bool isDate = false, bool isTime = false}) {
     final bool allowAttachments = question.id == 'attachments';
     final bool isOptional = !question.required;
@@ -145,6 +204,7 @@ class ChatInputArea extends GetView<ChatController> {
     else if (isTime) hintText = "Select Time";
     else if (isOptional) hintText = "Type message (Optional)...";
 
+    // Preserved Decoration from your file
     return Container(
       decoration: BoxDecoration(
         color: AppColors.nexusPanel,
@@ -153,6 +213,7 @@ class ChatInputArea extends GetView<ChatController> {
       ),
       child: Row(
         children: [
+          // A. Attachment Icon
           if (allowAttachments)
             IconButton(
               icon: const Icon(Icons.attach_file, color: AppColors.textSecondary, size: 20),
@@ -161,6 +222,7 @@ class ChatInputArea extends GetView<ChatController> {
           else
             const SizedBox(width: 12),
 
+          // B. Input Field
           Expanded(
             child: TextField(
               controller: controller.textController,
@@ -184,26 +246,18 @@ class ChatInputArea extends GetView<ChatController> {
             ),
           ),
 
-          Obx(() {
-            IconData icon = Icons.arrow_upward;
-            Color iconColor = AppColors.nexusTeal;
+          // C. Mic Icon (New - Only if allowed)
+          if (allowAttachments)
+            IconButton(
+              icon: const Icon(Icons.mic, color: AppColors.textSecondary, size: 20),
+              onPressed: controller.toggleRecording,
+            ),
 
-            if (controller.isRecording.value) {
-              icon = Icons.stop;
-              iconColor = AppColors.nexusRed;
-            }
-
-            return IconButton(
-              icon: Icon(icon, color: iconColor, size: 20),
-              onPressed: () {
-                if (controller.isRecording.value) {
-                  controller.toggleRecording();
-                } else {
-                  _submitText();
-                }
-              },
-            );
-          }),
+          // D. Send Button (Simple Style)
+          IconButton(
+            icon: const Icon(Icons.arrow_upward, color: AppColors.nexusTeal, size: 20),
+            onPressed: _submitText,
+          ),
         ],
       ),
     );
